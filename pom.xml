@@ -12,7 +12,7 @@
 
     <groupId>org.hudsonci.plugins</groupId>
     <artifactId>copy-team-cli</artifactId>
-    <version>1.0</version>
+    <version>1.1-SNAPSHOT</version>
 
     <packaging>hpi</packaging>
 
