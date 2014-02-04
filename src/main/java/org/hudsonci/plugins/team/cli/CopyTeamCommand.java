@@ -210,7 +210,7 @@ public class CopyTeamCommand extends CLICommand {
                     fixTeamName((Element) elem, oldPrefix, newPrefix);
                 }
             }
-            // Trigger and email
+            // Properties (open-ended problem)
             Element properties = root.element("project-properties");
             if (properties == null) {
                 throw new Failure("Project has no <project-properties>");
@@ -246,6 +246,45 @@ public class CopyTeamCommand extends CLICommand {
                         // trigger
                         if (origValue != null) {
                             fixTriggerProperty(origValue, oldPrefix, newPrefix);
+                        }
+                    } else if ("builders".equals(propName)) {
+                        // can be many of these
+                        Element describableList = entry.element("describable-list-property");
+                        origValue = describableList != null ? describableList.element("originalValue") : null;
+                        // copyartifact
+                        List artifacts = origValue != null ? origValue.elements("hudson.plugins.copyartifact.CopyArtifact") : null;
+                        if (artifacts != null) {
+                            for (Object obj : artifacts) {
+                                Element copyArtifact = (Element) obj;
+                                Element projectName = copyArtifact.element("projectName");
+                                fixTeamName(projectName, oldPrefix, newPrefix);
+                            }
+                        }
+                        // multijob
+                        List multiJob = origValue != null ? origValue.elements("com.tikal.jenkins.plugins.multijob.MultiJobBuilder") : null;
+                        for (Object obj : multiJob) {
+                            Element builder = (Element) obj;
+                            List jobs = builder.elements("phaseJobs");
+                            if (jobs != null) {
+                                for (Object j : jobs) {
+                                    Element job = (Element) j;
+                                    List configs = job.elements("com.tikal.jenkins.plugins.multijob.PhaseJobsConfig");
+                                    if (configs != null) {
+                                        for (Object c : configs) {
+                                            Element config = (Element) c;
+                                            Element jobName = config.element("jobName");
+                                            fixTeamName(jobName, oldPrefix, newPrefix);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        
+                    } else if ("hudson-plugins-redmine-RedmineProjectProperty".equals(propName)) {
+                        Element baseProp = entry.element("base-property");
+                        Element projectName = baseProp != null ? baseProp.element("projectName") : null;
+                        if (projectName != null) {
+                            fixTeamName(projectName, oldPrefix, newPrefix);
                         }
                     }
                 }
