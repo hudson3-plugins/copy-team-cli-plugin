@@ -37,7 +37,10 @@ import org.eclipse.hudson.security.team.Team;
 import org.eclipse.hudson.security.team.TeamManager;
 import org.eclipse.hudson.security.team.TeamManager.TeamAlreadyExistsException;
 import org.eclipse.hudson.security.team.TeamManager.TeamNotFoundException;
+import org.eclipse.hudson.security.team.TeamNode;
+import org.eclipse.hudson.security.team.TeamView;
 import org.kohsuke.args4j.Argument;
+import org.kohsuke.args4j.Option;
 
 /**
  * Copy a team and its jobs from the command line. User must be sys admin.
@@ -123,7 +126,13 @@ public class CopyTeamCommand extends CLICommand {
     public String to;
     @Argument(metaVar = "EMAIL", usage = "Email recipients separated by commas (optional); if not specified, recipients will be removed", required=false, index=2)
     public String email;
-
+    @Option(name = "-nodes", usage = "move (move nodes to new team), visible (make nodes visible to new team), ignore (ignore nodes - default), ")
+    public String nodes;
+    @Option(name = "-views", usage = "move (move views to new team), visible (make views visible to new team), ignore (ignore views - default), ")
+    public String views;
+    
+    
+    
     protected int run() throws Exception {
         Hudson h = Hudson.getInstance();
         
@@ -147,8 +156,17 @@ public class CopyTeamCommand extends CLICommand {
             return -1;
         }
         
+        if (nodes != null && !("move".equalsIgnoreCase(nodes) || "visible".equalsIgnoreCase(nodes) || "ignore".equalsIgnoreCase(nodes))) {
+            stderr.println("nodes must be one of move, visible or ignore");
+        }
+        
+        if (views != null && !("move".equalsIgnoreCase(views) || "visible".equalsIgnoreCase(views) || "ignore".equalsIgnoreCase(views))) {
+            stderr.println("views must be one of move, visible or ignore");
+        }
+        
+        Team toTeam = null;
         try {
-            teamManager.createTeam(to);
+            toTeam = teamManager.createTeam(to);
         } catch (IOException ex) {
             stderr.println(ex.getMessage());
             return -1;
@@ -173,6 +191,30 @@ public class CopyTeamCommand extends CLICommand {
                     return -1;
                 }
                 h.createProjectFromXML(unqualifiedName, to, in);
+            }
+        }
+        
+        if (nodes != null) {
+            if ("move".equalsIgnoreCase(nodes)) {
+                for (String nodeName : fromTeam.getNodeNames()) {
+                    teamManager.moveNode(fromTeam, toTeam, nodeName);
+                }
+            } else if ("visible".equalsIgnoreCase(nodes)) {
+                for (TeamNode teamNode : fromTeam.getNodes()) {
+                    teamManager.addNodeVisibility(teamNode, toTeam.getName());
+                }
+            }
+        }
+        
+        if (views != null) {
+            if ("move".equalsIgnoreCase(views)) {
+                for (String viewName : fromTeam.getViewNames()) {
+                    teamManager.moveView(fromTeam, toTeam, viewName);
+                }
+            } else if ("visible".equalsIgnoreCase(nodes)) {
+                for (TeamView teamView : fromTeam.getViews()) {
+                    teamManager.addViewVisibility(teamView, toTeam.getName());
+                }
             }
         }
         
