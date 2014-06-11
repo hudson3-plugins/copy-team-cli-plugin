@@ -44,7 +44,7 @@ import org.kohsuke.args4j.Option;
 
 /**
  * Copy a team and its jobs from the command line. User must be sys admin.
- * 
+ * <h3>EMAIL
  * Email <recipients> are replaced with contents of email argument.
  * <pre>
  * <project>
@@ -111,6 +111,36 @@ import org.kohsuke.args4j.Option;
  * </pre>
  * Note that project names that are not qualified with the old team name
  * are untouched.
+ * <h3>-nodes option
+ * <table>
+ * <tr>
+ * <th>Value</th>
+ * <th>Meaning</th>
+ * </tr>
+ * <tr>
+ * <td>move</td>
+ * <td>Move nodes owned by the from team to the to team.</td>
+ * <td>visible</td>
+ * <td>Make nodes owned by the from team visible to the to team</td>
+ * <td>ignore</td>
+ * <td>Do nothing about nodes owned by the from team (default)</td>
+ * </tr>
+ * </table>
+ * <table>
+ * <h3>-views option
+ * <tr>
+ * <th>Value</th>
+ * <th>Meaning</th>
+ * </tr>
+ * <tr>
+ * <td>move</td>
+ * <td>Move views owned by the from team to the to team.</td>
+ * <td>visible</td>
+ * <td>Make views owned by the from team visible to the to team</td>
+ * <td>ignore</td>
+ * <td>Do nothing about views owned by the from team (default)</td>
+ * </tr>
+ * </table>
  * @author Bob Foster
  */
 @Extension
@@ -126,9 +156,9 @@ public class CopyTeamCommand extends CLICommand {
     public String to;
     @Argument(metaVar = "EMAIL", usage = "Email recipients separated by commas (optional); if not specified, recipients will be removed", required=false, index=2)
     public String email;
-    @Option(name = "-nodes", usage = "move (move nodes to new team), visible (make nodes visible to new team), ignore (ignore nodes - default), ")
+    @Option(name = "-n", aliases="--nodes", usage = "MOVE (move nodes to new team), VISIBLE (make nodes visible to new team), IGNORE (ignore nodes - default), ")
     public String nodes;
-    @Option(name = "-views", usage = "move (move views to new team), visible (make views visible to new team), ignore (ignore views - default), ")
+    @Option(name = "-v", aliases="--views", usage = "MOVE (move views to new team), VISIBLE (make views visible to new team), IGNORE (ignore views - default), ")
     public String views;
     
     
@@ -202,6 +232,8 @@ public class CopyTeamCommand extends CLICommand {
             } else if ("visible".equalsIgnoreCase(nodes)) {
                 for (TeamNode teamNode : fromTeam.getNodes()) {
                     teamManager.addNodeVisibility(teamNode, toTeam.getName());
+                    // Assume target team wants to be able to use the node.
+                    teamManager.setNodeEnabled(teamNode.getId(), toTeam, true);
                 }
             }
         }

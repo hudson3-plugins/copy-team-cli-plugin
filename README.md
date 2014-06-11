@@ -9,12 +9,12 @@ Create a new team and copy all jobs in an existing team to it.
      TO                  : Team name to create (required)
      EMAIL               : Email recipients separated by commas (optional); if not
                            specified, recipients will be removed from the copied team.
-     -nodes              : Optional. Values may be:
-                           move - Move nodes owned by from team to the to team.
+     -n or --nodes       : Optional. Values may be:
+                           *move* - Move nodes owned by from team to the to team.
                            visible - Make nodes owned by the from team visible to the
                                      to team.
                            ignore - Do nothing about nodes owned by the from team (default).
-     -views              : Optional. Values may be:
+     -v or --view        : Optional. Values may be:
                            move - Move views owned by from team to the to team.
                            visible - Make views owned by the from team visible to the
                                      to team.
@@ -38,5 +38,5 @@ Job references outside the FROM team are not changed.
 NB: Email addresses and job references are only looked for in well-known locations.
 Addresses or references added by plugins are not affected.
 
-For -node and -views, any visibility configured in the from team for the node or view
+For --nodes and --views, any visibility configured in the from team for the node or view
 is lost in a move and retained in a visible.
